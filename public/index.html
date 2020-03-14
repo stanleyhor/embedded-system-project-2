@@ -1,0 +1,167 @@
+<!doctype html>
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+        <title>WUCA - Web of Things</title>
+        <style>
+            .outterBox {
+                margin-top: 20px;
+                text-align: center;
+                display: block;
+            }
+            table {
+                margin: auto;
+            }
+        </style>
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+        <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+        <script type="text/javascript">
+
+            const totalDataPoints = 25;
+
+            let data = [
+                ['time', 'temperature']
+            ];
+
+            let oldVal;
+//            let chart;
+
+            google.charts.load('current', {'packages':['corechart']});
+            google.charts.setOnLoadCallback(drawChart);
+
+            function drawChart() {
+                if (data.length < 2) {
+                    return;
+                }
+                var chartData = google.visualization.arrayToDataTable(data);
+
+                var options = {
+                    title: 'Temperature Chart',
+                    curveType: 'function',
+                    legend: { position: 'bottom' }
+                };
+
+                let chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
+
+                chart.draw(chartData, options);
+            }
+
+
+            function updateData() {
+                if (data.length > totalDataPoints) {
+                    data.splice(1,1);
+                    let newData = [];
+                    let count = 0;
+                    for (let d of data) {
+                        if (count == 0) {
+                            newData.push([d[0], d[1]]);
+                            count++;
+                            continue;
+                        }
+                        newData.push([count++, d[1]]);
+                    }
+                    data = newData;
+                }
+            }
+
+
+            function addDataPoint(dataPoint) { //#D
+                // if (data.getNumberOfRows() > maxDataPoints) {
+                // data.removeRow(0);
+                // }
+                if (!data) {
+                    return;
+                }
+                if (dataPoint.value != oldVal) {
+                    oldVal = dataPoint.value;
+                    console.log(oldVal);
+                }
+
+                updateData();
+
+                data.push([data.length, dataPoint.value]);
+                drawChart();
+            }
+//
+            function getTime() {
+                var d = new Date();
+                return d.toLocaleTimeString();
+            }
+
+            function doPoll() {
+//                $.getJSON('http://devices.webofthings.io/pi/sensors/temperature/value',
+                $.getJSON('/temperature',
+                function (result) {
+//                    console.log('----temperature:', result.temperature);
+                    addDataPoint({value: result.temperature}); //#G
+                    setTimeout(doPoll, 2000);
+                });
+            }
+
+            setTimeout(doPoll, 1000);
+
+            /***************************************/
+
+            let buttonClick = 0;
+
+            function serverButtonClick(onoff) {
+                $.post('/led/'+onoff,
+                        function (result) {
+//                            console.log('----result:', result);
+                        });
+            }
+
+            function handleButtonClick() {
+                buttonClick ^= true;
+                serverButtonClick(buttonClick);
+                updateLedStatus();
+            }
+
+            function readLedStatus() {
+                $.getJSON('/led',
+                        function (result) {
+                            buttonClick = result.onoff;
+                        });
+            }
+
+            function updateLedStatus() {
+                let status = buttonClick ? 'ON' : 'OFF';
+
+                readLedStatus();
+                // ready LED status
+
+
+                $('#ledStatus').html(status);
+            }
+
+            $(document).ready(_ => {
+                updateLedStatus();
+            })
+
+
+        </script>
+    </head>
+    <body>
+        <p>
+            <h1 class="text-center">WUCA</h1>
+        </p>
+
+                <div class="outterBox">
+                    LED is currently: <span id="ledStatus"></span>
+                    <br />
+                    <button type="button" class="btn btn-primary" onClick="handleButtonClick()">Toggle LED</button>
+                </div>
+                <div class="outterBox text-center">
+                    <div class="display: inline-block" id="curve_chart"></div>
+                </div>
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+        
+        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+    </body>
+</html>
