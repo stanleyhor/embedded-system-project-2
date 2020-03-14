@@ -28,7 +28,6 @@
             ];
 
             let oldVal;
-//            let chart;
 
             google.charts.load('current', {'packages':['corechart']});
             google.charts.setOnLoadCallback(drawChart);
@@ -69,10 +68,7 @@
             }
 
 
-            function addDataPoint(dataPoint) { //#D
-                // if (data.getNumberOfRows() > maxDataPoints) {
-                // data.removeRow(0);
-                // }
+            function addDataPoint(dataPoint) {
                 if (!data) {
                     return;
                 }
@@ -86,14 +82,13 @@
                 data.push([data.length, dataPoint.value]);
                 drawChart();
             }
-//
+
             function getTime() {
                 var d = new Date();
                 return d.toLocaleTimeString();
             }
 
             function doPoll() {
-//                $.getJSON('http://devices.webofthings.io/pi/sensors/temperature/value',
                 $.getJSON('/temperature',
                 function (result) {
 //                    console.log('----temperature:', result.temperature);
@@ -150,14 +145,14 @@
             <h1 class="text-center">WUCA</h1>
         </p>
 
-                <div class="outterBox">
-                    LED is currently: <span id="ledStatus"></span>
-                    <br />
-                    <button type="button" class="btn btn-primary" onClick="handleButtonClick()">Toggle LED</button>
-                </div>
-                <div class="outterBox text-center">
-                    <div class="display: inline-block" id="curve_chart"></div>
-                </div>
+        <div class="outterBox">
+            LED is currently: <span id="ledStatus"></span>
+            <br />
+            <button type="button" class="btn btn-primary" onClick="handleButtonClick()">Toggle LED</button>
+        </div>
+        <div class="outterBox text-center">
+            <div class="display: inline-block" id="curve_chart"></div>
+        </div>
 
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
         
